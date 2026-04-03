@@ -1,17 +1,23 @@
 import { useState } from 'react';
 import AnalyzerRatesPanel from '../components/reagents/AnalyzerRatesPanel';
+import AnalyzerReagentLinksPanel from '../components/reagents/AnalyzerReagentLinksPanel';
 import InventoryPanel from '../components/reagents/InventoryPanel';
 import LogUploadsPanel from '../components/reagents/LogUploadsPanel';
 import ReagentReportsPanel from '../components/reagents/ReagentReportsPanel';
+import LogAnalyticsPanel from '../components/reagents/LogAnalyticsPanel';
+import WarehousePanel from '../components/reagents/WarehousePanel';
 
 const TABS = [
   { id: 'inventory', label: 'Склад реагентов' },
+  { id: 'warehouse', label: 'Движения склада' },
   { id: 'analyzers', label: 'Анализаторы и нормы' },
+  { id: 'reagent-links', label: '🔗 Реагенты → Анализаторы' },
   { id: 'logs', label: 'Загрузка логов' },
   { id: 'reports', label: 'Отчёты расхода' },
+  { id: 'analytics', label: '⚠ Аналитика логов' },
 ];
 
-function ReagentsPage({ reagents, isAdmin }) {
+function ReagentsPage({ reagents, isAdmin, token }) {
   const [activeTab, setActiveTab] = useState('inventory');
 
   const criticalItems = reagents.reagentInventory.filter(
@@ -159,6 +165,28 @@ function ReagentsPage({ reagents, isAdmin }) {
           isAdmin={isAdmin}
           onGenerate={reagents.handleGenerateReport}
           onRefresh={reagents.loadConsumptionReports}
+        />
+      )}
+
+      {activeTab === 'warehouse' && (
+        <WarehousePanel
+          token={token}
+          isAdmin={isAdmin}
+        />
+      )}
+
+      {activeTab === 'reagent-links' && (
+        <AnalyzerReagentLinksPanel
+          token={token}
+          analyzers={reagents.analyzers}
+          isAdmin={isAdmin}
+        />
+      )}
+
+      {activeTab === 'analytics' && (
+        <LogAnalyticsPanel
+          token={token}
+          analyzers={reagents.analyzers}
         />
       )}
     </>

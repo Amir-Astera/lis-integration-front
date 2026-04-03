@@ -13,10 +13,14 @@ const SOURCE_TYPE_LABELS = {
 };
 
 const CLASSIFICATION_LABELS = {
-  LEGITIMATE: 'Легитимный',
-  UNAUTHORIZED: 'Несанкционированный',
+  LEGITIMATE: 'Регулярная проба',
+  SUSPICIOUS: 'Расхождение',
+  ERROR: 'Ошибка',
+  XML_RESULT: 'XML-результат',
+  PROBABLE_RERUN: 'Повтор',
+  WASH_TEST: 'Промывка',
   SERVICE: 'Сервисный',
-  UNKNOWN: 'Неизвестно',
+  UNKNOWN: 'Не определено',
 };
 
 function StatusBadge({ status }) {
@@ -70,6 +74,14 @@ function LogUploadsPanel({
       {isAdmin && (
         <div className="panel">
           <h2 style={{ marginBottom: 16 }}>Загрузить лог анализатора</h2>
+          <div style={{
+            padding: '10px 16px', borderRadius: 8, marginBottom: 16,
+            background: '#f59e0b10', border: '1px solid #f59e0b30', fontSize: 13, lineHeight: 1.5,
+          }}>
+            <strong>Внимание:</strong> При загрузке лога система выполняет парсинг и автоматический анализ.
+            Каждый загруженный файл добавляется как отдельная запись. Если нужно перезагрузить лог — загрузите файл повторно,
+            а затем удалите старый из истории ниже.
+          </div>
           <form className="form-stack" onSubmit={handleSubmitUpload}>
             <div className="form-grid">
               <div className="field-group">

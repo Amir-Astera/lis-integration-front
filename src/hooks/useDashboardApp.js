@@ -302,6 +302,10 @@ export function useDashboardApp() {
       setFileMap((prev) => ({ ...prev, [reportKind]: null }));
       await refreshUploads();
     } catch (error) {
+      if (error?.status === 409) {
+        setGlobalError('Ручная загрузка отчётов недоступна: в настройках выбран режим "DAMUMED_API". Перейдите в Настройки и переключите режим на "MANUAL".');
+        return;
+      }
       handleProtectedError(error, 'Не удалось загрузить отчет.');
     }
   }

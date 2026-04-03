@@ -219,3 +219,95 @@ export async function findMatchingAnalyzer(token, serviceName, category = null) 
   if (category) params.append('category', category);
   return apiRequest(`/api/reagents/service-mappings/match?${params.toString()}`, { method: 'GET' }, token);
 }
+
+// =====================================================================
+// Analyzer Reagent Links API
+// =====================================================================
+
+export async function fetchAnalyzerReagentLinks(token, analyzerId, activeOnly = false) {
+  return apiRequest(`/api/reagents/analyzers/${analyzerId}/reagent-links?activeOnly=${activeOnly}`, { method: 'GET' }, token);
+}
+
+export async function fetchAnalyzerReagentSummary(token, analyzerId) {
+  return apiRequest(`/api/reagents/analyzers/${analyzerId}/reagent-links/summary`, { method: 'GET' }, token);
+}
+
+export async function createAnalyzerReagentLink(token, analyzerId, payload) {
+  return apiRequest(`/api/reagents/analyzers/${analyzerId}/reagent-links`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  }, token);
+}
+
+export async function deleteAnalyzerReagentLink(token, analyzerId, linkId) {
+  return apiRequest(`/api/reagents/analyzers/${analyzerId}/reagent-links/${linkId}`, { method: 'DELETE' }, token);
+}
+
+export async function toggleAnalyzerReagentLink(token, analyzerId, linkId) {
+  return apiRequest(`/api/reagents/analyzers/${analyzerId}/reagent-links/${linkId}/toggle`, { method: 'POST' }, token);
+}
+
+export async function autoPopulateAnalyzerReagentLinks(token, analyzerId) {
+  return apiRequest(`/api/reagents/analyzers/${analyzerId}/reagent-links/auto-populate`, { method: 'POST' }, token);
+}
+
+// =====================================================================
+// Log Analytics API
+// =====================================================================
+
+export async function fetchLogAnalytics(token, { period = 'WEEK', analyzerId = null, referenceDate = null, dateFrom = null, dateTo = null } = {}) {
+  const params = new URLSearchParams();
+  params.append('period', period);
+  if (analyzerId) params.append('analyzerId', analyzerId);
+  if (referenceDate) params.append('referenceDate', referenceDate);
+  if (dateFrom) params.append('dateFrom', dateFrom);
+  if (dateTo) params.append('dateTo', dateTo);
+  return apiRequest(`/api/reagents/log-analytics?${params.toString()}`, { method: 'GET' }, token);
+}
+
+export async function rebuildLogAnomalies(token, logUploadId) {
+  return apiRequest(`/api/reagents/log-analytics/rebuild/${logUploadId}`, { method: 'POST' }, token);
+}
+
+// =====================================================================
+// Warehouse Movements API
+// =====================================================================
+
+export async function fetchWarehouseSummary(token) {
+  return apiRequest('/api/reagents/warehouse/summary', { method: 'GET' }, token);
+}
+
+export async function fetchWarehouseMovements(token, { from = null, to = null } = {}) {
+  const params = new URLSearchParams();
+  if (from) params.append('from', from);
+  if (to) params.append('to', to);
+  const query = params.toString() ? `?${params.toString()}` : '';
+  return apiRequest(`/api/reagents/warehouse/movements${query}`, { method: 'GET' }, token);
+}
+
+export async function fetchWarehouseMovementsByReagent(token, reagentId) {
+  return apiRequest(`/api/reagents/warehouse/movements/reagent/${reagentId}`, { method: 'GET' }, token);
+}
+
+export async function fetchWarehouseMovementsByConsumable(token, consumableId) {
+  return apiRequest(`/api/reagents/warehouse/movements/consumable/${consumableId}`, { method: 'GET' }, token);
+}
+
+export async function createWarehouseMovement(token, payload) {
+  return apiRequest('/api/reagents/warehouse/movements', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  }, token);
+}
+
+export async function deleteWarehouseMovement(token, movementId) {
+  return apiRequest(`/api/reagents/warehouse/movements/${movementId}`, { method: 'DELETE' }, token);
+}
+
+export async function fetchWarehouseLowStock(token) {
+  return apiRequest('/api/reagents/warehouse/alerts/low-stock', { method: 'GET' }, token);
+}
+
+export async function fetchWarehouseExpiryWarnings(token) {
+  return apiRequest('/api/reagents/warehouse/alerts/expiry', { method: 'GET' }, token);
+}

@@ -7,7 +7,7 @@ function AppLayout({ currentUser, isAdmin, bootstrapping, globalError, successMe
 
   const navigationItems = [
     { label: 'Панель управления', path: '/dashboard' },
-    { label: 'Регистратура', path: '/registry' },
+    { label: 'Услуги', path: '/registry' },
     { label: 'Рабочие листы', path: '/worklists' },
     { label: 'Оборудование', path: '/equipment' },
     { label: 'Склад', path: '/warehouse' },

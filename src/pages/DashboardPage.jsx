@@ -1,10 +1,11 @@
 import DashboardView from '../components/DashboardView';
 
-function DashboardPage({ currentUser, uploads, overview, referralRegistrationSummary, workplaceProcessedView, materialProcessedView, workplaceDetailReport }) {
+function DashboardPage({ token, currentUser, uploads, overview, referralRegistrationSummary, workplaceProcessedView, materialProcessedView, workplaceDetailReport }) {
   return (
-    <DashboardView 
-      currentUser={currentUser} 
-      uploads={uploads} 
+    <DashboardView
+      token={token}
+      currentUser={currentUser}
+      uploads={uploads}
       overview={overview}
       referralRegistrationSummary={referralRegistrationSummary}
       workplaceProcessedView={workplaceProcessedView}

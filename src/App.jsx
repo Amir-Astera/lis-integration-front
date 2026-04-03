@@ -51,9 +51,10 @@ function App() {
           }
         >
           <Route path="/dashboard" element={
-            <DashboardPage 
-              currentUser={app.currentUser} 
-              uploads={app.uploads} 
+            <DashboardPage
+              token={app.token}
+              currentUser={app.currentUser}
+              uploads={app.uploads}
               overview={app.operationalOverview}
               referralRegistrationSummary={app.referralRegistrationSummary}
               workplaceProcessedView={app.workplaceProcessedView}
@@ -61,11 +62,11 @@ function App() {
               workplaceDetailReport={app.workplaceDetailReport}
             />
           } />
-          <Route path="/registry" element={<RegistryPage overview={app.operationalOverview} />} />
+          <Route path="/registry" element={<RegistryPage overview={app.operationalOverview} token={app.token} initialSummary={app.referralRegistrationSummary} />} />
           <Route path="/worklists" element={<WorklistsPage overview={app.operationalOverview} />} />
           <Route path="/equipment" element={<EquipmentPage reagents={reagents} />} />
           <Route path="/warehouse" element={<WarehousePage reagents={reagents} />} />
-          <Route path="/reagents" element={<ReagentsPage reagents={reagents} isAdmin={app.isAdmin} />} />
+          <Route path="/reagents" element={<ReagentsPage reagents={reagents} isAdmin={app.isAdmin} token={app.token} />} />
           <Route path="/reports" element={<ReportsPage uploads={app.uploads} onRefresh={app.refreshUploads} />} />
           <Route path="/profile" element={<Navigate to="/dashboard" replace />} />
           <Route path="/uploads" element={<Navigate to="/reports" replace />} />
@@ -88,6 +89,8 @@ function App() {
                   userForm={app.userForm}
                   usersData={app.usersData}
                   setUserForm={app.setUserForm}
+                  uploads={app.uploads}
+                  token={app.token}
                 />
               }
             />
