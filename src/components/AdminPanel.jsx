@@ -4,10 +4,18 @@ import { normalizeUpload } from '../services/dashboard';
 
 const STATUS_LABELS = {
   PENDING: 'Ожидает',
-  NORMALIZING: 'Нормализация...',
+  PROCESSING: 'Обработка…',
+  NORMALIZING: 'Нормализация…',
   NORMALIZED: 'Нормализован',
   FAILED: 'Ошибка',
   SUPERSEDED: 'Заменён',
+};
+
+const PARSE_STATUS_LABELS = {
+  PENDING: 'Разбор не начат',
+  PROCESSING: 'Идёт разбор…',
+  PARSED: 'Разобран',
+  FAILED: 'Ошибка разбора',
 };
 
 const STATUS_COLORS = {
@@ -27,6 +35,27 @@ const KIND_LABELS = {
 
 function NormalizationBadge({ status }) {
   const label = STATUS_LABELS[status] || status;
+  const color = STATUS_COLORS[status] || '#6b7280';
+  return (
+    <span
+      style={{
+        display: 'inline-block',
+        padding: '2px 8px',
+        borderRadius: 4,
+        fontSize: 11,
+        fontWeight: 600,
+        background: color + '22',
+        color,
+        border: `1px solid ${color}44`,
+      }}
+    >
+      {label}
+    </span>
+  );
+}
+
+function ParseBadge({ status }) {
+  const label = PARSE_STATUS_LABELS[status] || status;
   const color = STATUS_COLORS[status] || '#6b7280';
   return (
     <span
@@ -103,12 +132,17 @@ function UploadHistoryTable({ uploads, token, onNormalized }) {
             <th>Дата загрузки</th>
             <th>Тип отчета</th>
             <th>Файл</th>
-            <th>Статус</th>
+            <th>Разбор / нормализация</th>
             <th>Действия</th>
           </tr>
         </thead>
         <tbody>
-          {sorted.map((upload) => (
+          {sorted.map((upload) => {
+            const parseOk = upload.parseStatus === 'PARSED';
+            const normDisabled =
+              normalizingIds[upload.id] ||
+              (!parseOk && upload.normalizationStatus !== 'NORMALIZED');
+            return (
             <tr key={upload.id}>
               <td style={{ whiteSpace: 'nowrap' }}>
                 {upload.uploadedAt
@@ -126,9 +160,19 @@ function UploadHistoryTable({ uploads, token, onNormalized }) {
                 {upload.fileName || upload.originalFileName || '—'}
               </td>
               <td>
-                <NormalizationBadge status={upload.normalizationStatus} />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <span style={{ fontSize: 10, color: '#64748b' }}>Разбор</span>
+                  <ParseBadge status={upload.parseStatus} />
+                  {upload.parseErrorMessage && upload.parseStatus === 'FAILED' && (
+                    <div style={{ color: '#ef4444', fontSize: 10, maxWidth: 220 }} title={upload.parseErrorMessage}>
+                      {upload.parseErrorMessage.length > 120 ? `${upload.parseErrorMessage.slice(0, 120)}…` : upload.parseErrorMessage}
+                    </div>
+                  )}
+                  <span style={{ fontSize: 10, color: '#64748b', marginTop: 2 }}>Нормализация</span>
+                  <NormalizationBadge status={upload.normalizationStatus} />
+                </div>
                 {errors[upload.id] && (
-                  <div style={{ color: '#ef4444', fontSize: 11, marginTop: 2 }}>{errors[upload.id]}</div>
+                  <div style={{ color: '#ef4444', fontSize: 11, marginTop: 6 }}>{errors[upload.id]}</div>
                 )}
               </td>
               <td>
@@ -137,7 +181,8 @@ function UploadHistoryTable({ uploads, token, onNormalized }) {
                     type="button"
                     className="secondary-button"
                     style={{ fontSize: 12, padding: '4px 10px' }}
-                    disabled={normalizingIds[upload.id]}
+                    disabled={normDisabled}
+                    title={!parseOk ? 'Сначала должен успешно завершиться разбор файла (статус «Разобран»).' : undefined}
                     onClick={() => handleNormalize(upload.id)}
                   >
                     {normalizingIds[upload.id] ? 'Идет...' : 'Нормализовать'}
@@ -148,16 +193,17 @@ function UploadHistoryTable({ uploads, token, onNormalized }) {
                     type="button"
                     className="secondary-button"
                     style={{ fontSize: 12, padding: '4px 10px', opacity: 0.7 }}
-                    disabled={normalizingIds[upload.id]}
+                    disabled={normDisabled}
+                    title={!parseOk ? 'Сначала должен успешно завершиться разбор файла.' : 'Повторно нормализовать (пересчитать данные)'}
                     onClick={() => handleNormalize(upload.id)}
-                    title="Повторно нормализовать (пересчитать данные)"
                   >
                     {normalizingIds[upload.id] ? 'Идет...' : 'Пересчитать'}
                   </button>
                 )}
               </td>
             </tr>
-          ))}
+            );
+          })}
         </tbody>
       </table>
     </div>
