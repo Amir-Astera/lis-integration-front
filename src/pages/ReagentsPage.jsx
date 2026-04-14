@@ -150,7 +150,7 @@ function ReagentsPage({ reagents, isAdmin, token }) {
           parsedSamples={reagents.parsedSamples}
           loading={reagents.loading}
           isAdmin={isAdmin}
-          onUpload={reagents.handleUploadLog}
+          onUpload={reagents.handleUploadLogs}
           onParse={reagents.handleParseLog}
           onLoadSamples={reagents.loadParsedSamples}
           onRefresh={reagents.loadLogUploads}

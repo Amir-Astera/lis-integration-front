@@ -42,17 +42,19 @@ function LogUploadsPanel({
   isAdmin, onUpload, onParse, onLoadSamples, onRefresh,
 }) {
   const [selectedUploadId, setSelectedUploadId] = useState(null);
-  const [uploadForm, setUploadForm] = useState({ analyzerId: '', sourceType: 'APPLOGS', file: null });
+  const [uploadForm, setUploadForm] = useState({ analyzerId: '', sourceType: 'APPLOGS', files: [] });
   const [showSamples, setShowSamples] = useState(false);
 
   const selectedUpload = logUploads.find((u) => u.id === selectedUploadId);
 
   async function handleSubmitUpload(e) {
     e.preventDefault();
-    if (!uploadForm.file || !uploadForm.analyzerId) return;
-    await onUpload(uploadForm.analyzerId, uploadForm.sourceType, uploadForm.file);
-    setUploadForm((p) => ({ ...p, file: null }));
+    if (!uploadForm.files?.length || !uploadForm.analyzerId) return;
+    await onUpload(uploadForm.analyzerId, uploadForm.sourceType, uploadForm.files);
+    setUploadForm((p) => ({ ...p, files: [] }));
   }
+
+  const batchAllowed = uploadForm.sourceType === 'APPLOGS' || uploadForm.sourceType === 'ERRORS_XML';
 
   async function handleParse(uploadId) {
     await onParse(uploadId);
@@ -78,9 +80,8 @@ function LogUploadsPanel({
             padding: '10px 16px', borderRadius: 8, marginBottom: 16,
             background: '#f59e0b10', border: '1px solid #f59e0b30', fontSize: 13, lineHeight: 1.5,
           }}>
-            <strong>Внимание:</strong> При загрузке лога система выполняет парсинг и автоматический анализ.
-            Каждый загруженный файл добавляется как отдельная запись. Если нужно перезагрузить лог — загрузите файл повторно,
-            а затем удалите старый из истории ниже.
+            <strong>Внимание:</strong> для Applogs и Errors XML можно выбрать <strong>несколько файлов</strong> сразу (Ctrl/Shift в диалоге выбора).
+            Для Applogs после загрузки выполняется автоматический разбор. Каждый файл — отдельная запись в журнале ниже.
           </div>
           <form className="form-stack" onSubmit={handleSubmitUpload}>
             <div className="form-grid">
@@ -101,7 +102,7 @@ function LogUploadsPanel({
                 <label>Тип источника</label>
                 <select
                   value={uploadForm.sourceType}
-                  onChange={(e) => setUploadForm((p) => ({ ...p, sourceType: e.target.value }))}
+                  onChange={(e) => setUploadForm((p) => ({ ...p, sourceType: e.target.value, files: [] }))}
                 >
                   {Object.entries(SOURCE_TYPE_LABELS).map(([k, v]) => (
                     <option key={k} value={k}>{v}</option>
@@ -109,17 +110,30 @@ function LogUploadsPanel({
                 </select>
               </div>
               <div className="field-group">
-                <label>Файл лога *</label>
+                <label>{batchAllowed ? 'Файлы лога *' : 'Файл лога *'}</label>
                 <input
                   type="file"
                   accept=".csv,.xml,.log,.txt"
-                  onChange={(e) => setUploadForm((p) => ({ ...p, file: e.target.files?.[0] || null }))}
+                  multiple={batchAllowed}
+                  onChange={(e) => {
+                    const picked = e.target.files ? Array.from(e.target.files) : [];
+                    setUploadForm((p) => ({ ...p, files: picked }));
+                  }}
                 />
+                {batchAllowed && uploadForm.files?.length > 0 && (
+                  <div className="text-medium" style={{ marginTop: 6 }}>
+                    Выбрано файлов: {uploadForm.files.length}
+                  </div>
+                )}
               </div>
             </div>
             <div className="actions-row">
-              <button type="submit" className="primary-button" disabled={loading || !uploadForm.file || !uploadForm.analyzerId}>
-                Загрузить
+              <button
+                type="submit"
+                className="primary-button"
+                disabled={loading || !uploadForm.files?.length || !uploadForm.analyzerId}
+              >
+                {uploadForm.files?.length > 1 ? `Загрузить (${uploadForm.files.length})` : 'Загрузить'}
               </button>
             </div>
           </form>

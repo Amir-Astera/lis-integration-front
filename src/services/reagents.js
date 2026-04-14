@@ -110,6 +110,22 @@ export async function uploadAnalyzerLog(token, analyzerId, sourceType, file) {
   }, token);
 }
 
+/** Несколько файлов одним запросом (multipart: повторяющееся поле `files`). */
+export async function uploadAnalyzerLogsBatch(token, analyzerId, sourceType, files, autoParse = true) {
+  const formData = new FormData();
+  for (const file of files) {
+    formData.append('files', file);
+  }
+  const params = new URLSearchParams();
+  if (analyzerId) params.append('analyzerId', analyzerId);
+  params.append('autoParse', String(autoParse));
+  const qs = params.toString();
+  return apiRequest(`/api/reagents/log-uploads/manual/${sourceType}/batch?${qs}`, {
+    method: 'POST',
+    body: formData,
+  }, token);
+}
+
 export async function parseAnalyzerLog(token, uploadId) {
   return apiRequest(`/api/reagents/log-uploads/${uploadId}/parse`, { method: 'POST' }, token);
 }

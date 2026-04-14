@@ -26,6 +26,7 @@ import {
   updateServiceMapping,
   updateServiceReagentNorm,
   uploadAnalyzerLog,
+  uploadAnalyzerLogsBatch,
   upsertAnalyzer,
   upsertAnalyzerRate,
   upsertConsumableInventory,
@@ -333,21 +334,50 @@ export function useReagents(token, isAdmin, onUnauthorized) {
     }
   }
 
-  async function handleUploadLog(analyzerId, sourceType, file) {
+  async function handleUploadLogs(analyzerId, sourceType, files) {
     if (!isAdmin) return null;
+    const list = (Array.isArray(files) ? files : []).filter(Boolean);
+    if (!list.length) return null;
     clearMessages();
     setLoading(true);
     try {
-      const result = await uploadAnalyzerLog(token, analyzerId, sourceType, file);
-      setSuccess('Лог загружен. Нажмите "Разобрать" для парсинга.');
+      if (list.length === 1) {
+        const result = await uploadAnalyzerLog(token, analyzerId, sourceType, list[0]);
+        setSuccess(
+          sourceType === 'APPLOGS'
+            ? 'Лог загружен и разобран.'
+            : 'Лог загружен. При необходимости нажмите «Разобрать».',
+        );
+        await loadLogUploads();
+        return result;
+      }
+      const results = await uploadAnalyzerLogsBatch(token, analyzerId, sourceType, list, true);
+      const ok = results.filter((r) => r.success).length;
+      const fail = results.length - ok;
+      const failLines = results
+        .filter((r) => !r.success)
+        .map((r) => `${r.originalFileName}: ${r.errorMessage || 'ошибка'}`);
+      if (fail === results.length) {
+        setError(failLines.join(' · ') || 'Не удалось загрузить файлы.');
+      } else {
+        const parts = [`Успешно: ${ok} из ${results.length} файлов.`];
+        if (failLines.length) {
+          parts.push(`Не удалось: ${failLines.join(' · ')}`);
+        }
+        setSuccess(parts.join(' '));
+      }
       await loadLogUploads();
-      return result;
+      return results;
     } catch (err) {
-      handleError(err, 'Не удалось загрузить лог.');
+      handleError(err, 'Не удалось загрузить лог(и).');
       return null;
     } finally {
       setLoading(false);
     }
+  }
+
+  async function handleUploadLog(analyzerId, sourceType, file) {
+    return handleUploadLogs(analyzerId, sourceType, file ? [file] : []);
   }
 
   async function handleParseLog(uploadId) {
@@ -561,6 +591,7 @@ export function useReagents(token, isAdmin, onUnauthorized) {
     handleUpsertConsumableInventory,
     handleDeleteConsumableInventory,
     handleUploadLog,
+    handleUploadLogs,
     handleParseLog,
     handleGenerateReport,
     handleCalculateDamumedConsumption,
