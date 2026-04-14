@@ -41,7 +41,13 @@ export async function apiRequest(path, options = {}, token) {
   if (!response.ok) {
     const message = typeof payload === 'string'
       ? payload
-      : payload?.message || payload?.error || `HTTP ${response.status}`;
+      : payload?.message
+        || payload?.detail
+        || (typeof payload?.error === 'string' && payload?.error !== 'Bad Request'
+          ? payload.error
+          : null)
+        || payload?.error
+        || `HTTP ${response.status}`;
     throw new ApiError(message, response.status, payload);
   }
 
