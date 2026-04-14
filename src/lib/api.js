@@ -18,7 +18,11 @@ export class ApiError extends Error {
 
 export async function apiRequest(path, options = {}, token) {
   const headers = new Headers(options.headers || {});
-  if (!(options.body instanceof FormData) && !headers.has('Content-Type')) {
+  const isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData;
+  if (isFormData) {
+    // Иначе boundary не подставится и прокси/браузер может отправить text/plain → 415 на бэке
+    headers.delete('Content-Type');
+  } else if (!headers.has('Content-Type')) {
     headers.set('Content-Type', 'application/json');
   }
   if (token) {
